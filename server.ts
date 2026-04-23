@@ -294,7 +294,8 @@ async function startServer() {
       appType: "spa",
     });
     app.use(vite.middlewares);
-  } else {
+  } else if (!process.env.VERCEL) {
+    // Only serve static files if NOT on Vercel (Vercel handles this via rewrites)
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
@@ -307,4 +308,12 @@ async function startServer() {
   });
 }
 
-startServer();
+// Export the app for Vercel
+export default app;
+
+if (process.env.NODE_ENV !== "production") {
+  startServer();
+} else if (!process.env.VERCEL) {
+  // If in production but not on Vercel (e.g. Docker), start the server
+  startServer();
+}

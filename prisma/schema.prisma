@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id              Int              @id @default(autoincrement())
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
   name            String
   email           String           @unique
   password        String
@@ -24,8 +24,8 @@ model User {
 }
 
 model CreditHistory {
-  id        Int      @id @default(autoincrement())
-  userId    Int
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   amount    Int // e.g., 5 for deduction, 50 for addition
   type      String // "added" | "deducted"
   reason    String? // e.g., "Image generation", "Plan purchase"
@@ -34,8 +34,8 @@ model CreditHistory {
 }
 
 model PaymentRequest {
-  id        Int      @id @default(autoincrement())
-  userId    Int
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
   plan      String // "50 Credits", "100 Credits", "200 Credits"
   amount    Int // Price in INR
   utrCode   String   @unique

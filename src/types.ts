@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   credits: number;
@@ -8,8 +8,8 @@ export interface User {
 }
 
 export interface PaymentRequest {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   plan: string;
   amount: number;
   utrCode: string;
@@ -24,8 +24,8 @@ export interface PaymentRequest {
 }
 
 export interface CreditHistory {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   amount: number;
   type: "added" | "deducted";
   reason: string;
