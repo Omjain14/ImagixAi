@@ -19,19 +19,19 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // Simulate quick fake login for demo purposes
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const fakeUserData = {
+        id: "demo-user-" + Math.random().toString(36).substr(2, 9),
+        name: email.split("@")[0] || "Demo User",
+        email: email,
+        credits: 25,
+        role: email === "omjain1401@gmail.com" ? "admin" : "user"
+      };
 
-      const data = await res.json();
-      if (res.ok) {
-        login(data.user);
-        navigate("/generator");
-      } else {
-        setError(data.error || "Login failed");
-      }
+      login(fakeUserData as any);
+      navigate("/generator");
     } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {

@@ -33,19 +33,19 @@ export default function SignupPage() {
     }
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
+      // Simulate quick fake registration for demo purposes
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const fakeUserData = {
+        id: "demo-user-" + Math.random().toString(36).substr(2, 9),
+        name: name,
+        email: email,
+        credits: 25,
+        role: "user"
+      };
 
-      const data = await res.json();
-      if (res.ok) {
-        login(data.user);
-        navigate("/generator");
-      } else {
-        setError(data.error || "Registration failed");
-      }
+      login(fakeUserData as any);
+      navigate("/generator");
     } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {

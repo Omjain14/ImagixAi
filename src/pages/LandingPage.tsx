@@ -178,7 +178,13 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {REVIEWS.map((review, i) => (
-              <ReviewCard key={i} {...review} />
+              <ReviewCard 
+                key={i} 
+                name={review.name}
+                role={review.role}
+                content={review.content}
+                avatar={review.avatar}
+              />
             ))}
           </div>
         </div>

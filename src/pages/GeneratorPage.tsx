@@ -11,7 +11,7 @@ export default function GeneratorPage() {
   const [error, setError] = useState("");
   const [numResults, setNumResults] = useState(1);
 
-  const { user, refreshProfile } = useAuth();
+  const { user, refreshProfile, login } = useAuth();
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -25,19 +25,16 @@ export default function GeneratorPage() {
     setGeneratedImages([]);
 
     try {
-      // 1. Deduct credits from backend
-      const deductRes = await fetch("/api/credits/deduct", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: 5 }),
-      });
-
-      if (!deductRes.ok) {
-        const data = await deductRes.json();
-        throw new Error(data.error || "Failed to deduct credits");
+      // Demo mode: Bypass backend credit deduction
+      // We still simulate a small wait to feel authentic
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Update local storage for credits simulation if user exists
+      if (user) {
+        const updatedUser = { ...user, credits: Math.max(0, user.credits - 5) };
+        localStorage.setItem("imagix_demo_user", JSON.stringify(updatedUser));
+        login(updatedUser); // Update context instantly
       }
-
-      await refreshProfile(); // Update credits in UI
 
       // 2. Call Gemini API (Frontend)
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });

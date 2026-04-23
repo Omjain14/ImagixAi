@@ -24,9 +24,12 @@ export default function PaymentPage() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("/api/payment/my");
-      const data = await res.json();
-      if (res.ok) setHistory(data.payments);
+      const demoHistory = localStorage.getItem("imagix_demo_payments");
+      if (demoHistory) {
+        setHistory(JSON.parse(demoHistory));
+      } else {
+        setHistory([]);
+      }
     } catch (err) {
       console.error("Failed to fetch payment history");
     } finally {
@@ -47,27 +50,29 @@ export default function PaymentPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/payment/request", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          plan: selectedPlan.name,
-          amount: selectedPlan.price,
-          utrCode,
-          date: new Date().toISOString(),
-          note
-        }),
-      });
+      // Simulate quick fake submission
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      const newRequest: PaymentRequest = {
+        id: "req-" + Math.random().toString(36).substr(2, 9),
+        userId: user?.id || "demo-user",
+        plan: selectedPlan.name,
+        amount: selectedPlan.price,
+        utrCode,
+        date: new Date().toISOString(),
+        note: note,
+        status: "pending",
+        createdAt: new Date().toISOString()
+      };
 
-      const data = await res.json();
-      if (res.ok) {
-        setMessage(data.message);
-        setUtrCode("");
-        setNote("");
-        fetchHistory();
-      } else {
-        setError(data.error || "Submission failed");
-      }
+      const existingHistory = JSON.parse(localStorage.getItem("imagix_demo_payments") || "[]");
+      const updatedHistory = [newRequest, ...existingHistory];
+      localStorage.setItem("imagix_demo_payments", JSON.stringify(updatedHistory));
+
+      setMessage("Payment request submitted. Admin will review within 24h.");
+      setUtrCode("");
+      setNote("");
+      fetchHistory();
     } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {

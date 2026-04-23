@@ -23,20 +23,26 @@ export default function AdminDashboard() {
   const [payments, setPayments] = useState<PaymentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [processingId, setProcessingId] = useState<number | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [usersRes, paymentsRes] = await Promise.all([
-        fetch("/api/admin/users"),
-        fetch("/api/admin/payments")
-      ]);
-      const usersData = await usersRes.json();
-      const paymentsData = await paymentsRes.json();
+      // Demo mode: Load from local storage or use defaults
+      const localPayments = JSON.parse(localStorage.getItem("imagix_demo_payments") || "[]");
+      const localUsers = JSON.parse(localStorage.getItem("imagix_users_list") || "[]");
       
-      if (usersRes.ok) setUsers(usersData.users);
-      if (paymentsRes.ok) setPayments(paymentsData.payments);
+      // If no users, add current user as primary demo user
+      if (localUsers.length === 0) {
+        const currentUser = JSON.parse(localStorage.getItem("imagix_demo_user") || "null");
+        if (currentUser) {
+          localUsers.push(currentUser);
+          localStorage.setItem("imagix_users_list", JSON.stringify(localUsers));
+        }
+      }
+
+      setPayments(localPayments);
+      setUsers(localUsers);
     } catch (err) {
       console.error("Failed to fetch admin data");
     } finally {
@@ -48,42 +54,62 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
-  const handleApprove = async (id: number) => {
+  const handleApprove = async (id: string) => {
     setProcessingId(id);
     try {
-      const res = await fetch("/api/admin/payment/approve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId: id })
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const localPayments = JSON.parse(localStorage.getItem("imagix_demo_payments") || "[]");
+      const localReports = localPayments.map((p: any) => {
+        if (p.id === id) {
+          return { ...p, status: "approved" };
+        }
+        return p;
       });
-      if (res.ok) fetchData();
+      localStorage.setItem("imagix_demo_payments", JSON.stringify(localReports));
+      fetchData();
     } finally {
       setProcessingId(null);
     }
   };
 
-  const handleReject = async (id: number) => {
+  const handleReject = async (id: string) => {
     setProcessingId(id);
     try {
-      const res = await fetch("/api/admin/payment/reject", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId: id })
+      await new Promise(resolve => setTimeout(resolve, 600));
+      const localPayments = JSON.parse(localStorage.getItem("imagix_demo_payments") || "[]");
+      const localReports = localPayments.map((p: any) => {
+        if (p.id === id) {
+          return { ...p, status: "rejected" };
+        }
+        return p;
       });
-      if (res.ok) fetchData();
+      localStorage.setItem("imagix_demo_payments", JSON.stringify(localReports));
+      fetchData();
     } finally {
       setProcessingId(null);
     }
   };
 
-  const adjustCredits = async (userId: number, amount: number, type: "added" | "deducted") => {
+  const adjustCredits = async (userId: string, amount: number, type: "added" | "deducted") => {
     try {
-      const res = await fetch("/api/admin/user/credits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, amount, type, reason: "Admin adjustment" })
+      const localUsers = JSON.parse(localStorage.getItem("imagix_users_list") || "[]");
+      const updatedUsers = localUsers.map((u: any) => {
+        if (u.id === userId) {
+          const newCredits = type === "added" ? u.credits + amount : Math.max(0, u.credits - amount);
+          return { ...u, credits: newCredits };
+        }
+        return u;
       });
-      if (res.ok) fetchData();
+      localStorage.setItem("imagix_users_list", JSON.stringify(updatedUsers));
+      
+      // Also update the current session if it's the same user
+      const currentUser = JSON.parse(localStorage.getItem("imagix_demo_user") || "null");
+      if (currentUser && currentUser.id === userId) {
+        const u = updatedUsers.find((user: any) => user.id === userId);
+        localStorage.setItem("imagix_demo_user", JSON.stringify(u));
+      }
+      
+      fetchData();
     } catch (err) {
       console.error("Failed to adjust credits");
     }

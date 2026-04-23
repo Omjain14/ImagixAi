@@ -17,10 +17,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     try {
-      const res = await fetch("/api/user/profile");
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.user);
+      const demoUser = localStorage.getItem("imagix_demo_user");
+      if (demoUser) {
+        setUser(JSON.parse(demoUser));
       } else {
         setUser(null);
       }
@@ -36,11 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (userData: User) => {
-    setUser(userData);
+    const userWithId = { ...userData, id: userData.id || "demo-user-id" };
+    localStorage.setItem("imagix_demo_user", JSON.stringify(userWithId));
+    setUser(userWithId);
   };
 
   const logout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    localStorage.removeItem("imagix_demo_user");
     setUser(null);
   };
 
